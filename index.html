@@ -8,7 +8,7 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
       :root {
         --bg-1: #dbeafe;
@@ -255,25 +255,6 @@
 
     <script type="text/babel">
       const { useState, useRef } = React;
-      const {
-        Copy,
-        Check,
-        User,
-        Share2,
-        Upload,
-        X,
-        Layout,
-        Settings,
-        Globe,
-        Monitor,
-        MousePointer2,
-        RefreshCw,
-        ChevronDown,
-        Sparkles,
-        BadgeCheck,
-        Wand2
-      } = lucide;
-
       const DEFAULT_ICONS = {
         linkedin: "https://cdn-icons-png.flaticon.com/64/145/145807.png",
         facebook: "https://cdn-icons-png.flaticon.com/64/145/145802.png",
@@ -281,10 +262,29 @@
         youtube: "https://cdn-icons-png.flaticon.com/64/174/174883.png"
       };
 
-      const Icon = ({ icon, size = 16, className = "" }) => {
-        const IconComp = icon;
-        return <IconComp size={size} className={className} />;
+      const ICON_PATHS = {
+        copy: "M16 1H4a2 2 0 0 0-2 2v12h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z",
+        check: "M20 6L9 17l-5-5 1.4-1.4L9 14.2 18.6 4.6 20 6z",
+        user: "M12 12c2.76 0 5-2.69 5-6s-2.24-6-5-6-5 2.69-5 6 2.24 6 5 6zm0 2c-4.42 0-8 2.69-8 6v2h16v-2c0-3.31-3.58-6-8-6z",
+        share: "M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7a2.48 2.48 0 0 0 0-1.39l7-4.11A2.99 2.99 0 1 0 15 5a3 3 0 0 0 .04.49l-7 4.12a3 3 0 1 0 0 4.78l7.05 4.14c-.03.15-.05.31-.05.47a3 3 0 1 0 3-2.92z",
+        upload: "M5 17v2h14v-2H5zM12 3l-5.5 5.5 1.42 1.42L11 6.83V16h2V6.83l3.08 3.09 1.42-1.42L12 3z",
+        x: "M18.3 5.71 12 12l6.3 6.29-1.41 1.41L10.59 13.41 4.29 19.7 2.88 18.29 9.17 12 2.88 5.71 4.29 4.3l6.3 6.29 6.29-6.3z",
+        layout: "M3 5h18v2H3V5zm0 6h8v8H3v-8zm10 0h8v8h-8v-8z",
+        globe: "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm6.93 9h-3.06a15.65 15.65 0 0 0-1.38-5.01A8.03 8.03 0 0 1 18.93 11zM12 4c1.24 1.67 2.13 4.12 2.45 7H9.55C9.87 8.12 10.76 5.67 12 4zM4.07 13h3.06c.22 1.81.7 3.53 1.38 5.01A8.03 8.03 0 0 1 4.07 13zm3.06-2H4.07a8.03 8.03 0 0 1 4.44-5.01A15.65 15.65 0 0 0 7.13 11zM12 20c-1.24-1.67-2.13-4.12-2.45-7h4.9c-.32 2.88-1.21 5.33-2.45 7zm2.49-1.99A15.65 15.65 0 0 0 15.87 13h3.06a8.03 8.03 0 0 1-4.44 5.01z",
+        monitor: "M4 3h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-6v2h3v2H7v-2h3v-2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm0 12h16V5H4v10z",
+        pointer: "M4 3l7 16 2.2-6.8L20 10 4 3z",
+        refresh: "M17.65 6.35A7.95 7.95 0 0 0 12 4V1L7 6l5 5V7a5 5 0 1 1-4.9 6h-2.02A7 7 0 1 0 17.65 6.35z",
+        chevronDown: "M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z",
+        sparkles: "M12 2l1.76 4.24L18 8l-4.24 1.76L12 14l-1.76-4.24L6 8l4.24-1.76L12 2zm6 10l.94 2.06L21 15l-2.06.94L18 18l-.94-2.06L15 15l2.06-.94L18 12zM6 14l1.17 2.83L10 18l-2.83 1.17L6 22l-1.17-2.83L2 18l2.83-1.17L6 14z",
+        badgeCheck: "M12 2l2.39 2.42 3.36-.48.48 3.36L20.65 10 18.23 12.4l.48 3.36-3.36.48L12 18.65l-2.42-2.41-3.36.48-.48-3.36L3.35 10l2.41-2.42-.48-3.36 3.36-.48L12 2zm-1 11 5-5-1.41-1.41L11 10.17 9.41 8.59 8 10l3 3z",
+        wand: "M3 21l3-3 2 2-3 3H3v-2zM14.71 4.29l5 5-1.42 1.42-5-5 1.42-1.42zM12.59 6.41 4 15l5 5 8.59-8.59-5-5z"
       };
+
+      const Icon = ({ name, size = 16, className = "" }) => (
+        <svg viewBox="0 0 24 24" width={size} height={size} className={className} fill="currentColor" aria-hidden="true">
+          <path d={ICON_PATHS[name] || ICON_PATHS.sparkles}></path>
+        </svg>
+      );
 
       const GlassSection = ({ icon, title, children, subtitle }) => (
         <section className="glass-soft rounded-[28px] p-5 md:p-6">
@@ -292,7 +292,7 @@
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <div className="w-8 h-8 rounded-2xl glass-chip flex items-center justify-center text-slate-700">
-                  <Icon icon={icon} size={14} />
+                  <Icon name={icon} size={14} />
                 </div>
                 <h2 className="tiny-label">{title}</h2>
               </div>
@@ -481,12 +481,12 @@
 
         return (
           <div className="app-shell">
-            <div className="glass w-full h-full rounded-[36px] overflow-hidden lg:grid lg:grid-cols-[430px_1fr]">
+            <div className="glass w-full min-h-full rounded-[36px] overflow-hidden lg:grid lg:grid-cols-[430px_1fr]">
               <aside className="sidebar-scroll overflow-y-auto p-5 md:p-6 lg:p-7 border-b lg:border-b-0 lg:border-r border-white/30">
                 <div className="flex items-center justify-between gap-4 mb-7">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-[20px] glass-chip flex items-center justify-center text-slate-800 shadow-sm">
-                      <Icon icon={Sparkles} size={20} />
+                      <Icon name="sparkles" size={20} />
                     </div>
                     <div>
                       <h1 className="text-2xl font-semibold tracking-tight">Signature</h1>
@@ -494,12 +494,12 @@
                     </div>
                   </div>
                   <div className="hidden md:flex items-center gap-2 glass-chip px-3 py-2 rounded-2xl text-[11px] font-semibold text-slate-600">
-                    <Icon icon={BadgeCheck} size={14} /> Live editor
+                    <Icon name="badgeCheck" size={14} /> Live editor
                   </div>
                 </div>
 
                 <div className="space-y-5 pb-10">
-                  <GlassSection icon={User} title="Identity" subtitle="Add the personal details shown inside the signature.">
+                  <GlassSection icon="user" title="Identity" subtitle="Add the personal details shown inside the signature.">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[11px] font-semibold text-slate-600 mb-2 ml-1">Full Name</label>
@@ -518,7 +518,7 @@
                           {companyOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                          <Icon icon={ChevronDown} size={16} />
+                          <Icon name="chevronDown" size={16} />
                         </div>
                       </div>
                     </div>
@@ -541,20 +541,20 @@
                           {addressOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                          <Icon icon={ChevronDown} size={16} />
+                          <Icon name="chevronDown" size={16} />
                         </div>
                       </div>
                     </div>
                   </GlassSection>
 
-                  <GlassSection icon={Layout} title="Logo & Layout" subtitle="Upload a logo and tune spacing with a softer Apple-style control panel.">
+                  <GlassSection icon="layout" title="Logo & Layout" subtitle="Upload a logo and tune spacing with a softer Apple-style control panel.">
                     <div className="flex gap-3">
                       <button onClick={() => fileInputRef.current?.click()} className="glass-chip rounded-[20px] px-4 py-3 text-sm font-semibold text-slate-700 flex-1 flex items-center justify-center gap-2 hover:bg-white/70 transition">
-                        <Icon icon={Upload} size={15} /> Upload Logo
+                        <Icon name="upload" size={15} /> Upload Logo
                       </button>
                       {formData.logoUrl ? (
                         <button onClick={() => setFormData((p) => ({ ...p, logoUrl: '' }))} className="glass-chip rounded-[20px] px-4 py-3 text-red-500 hover:bg-red-50/70 transition">
-                          <Icon icon={X} size={16} />
+                          <Icon name="x" size={16} />
                         </button>
                       ) : null}
                       <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept="image/*" className="hidden" />
@@ -565,7 +565,7 @@
                       <div className="relative">
                         <input className="field pl-11" name="websiteUrl" value={formData.websiteUrl} onChange={handleInputChange} placeholder="https://www.company.com" />
                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                          <Icon icon={Globe} size={15} />
+                          <Icon name="globe" size={15} />
                         </div>
                       </div>
                     </div>
@@ -599,7 +599,7 @@
                     </div>
                   </GlassSection>
 
-                  <GlassSection icon={Share2} title="Social Profiles" subtitle="Add profile links to show branded social icons below the logo.">
+                  <GlassSection icon="share" title="Social Profiles" subtitle="Add profile links to show branded social icons below the logo.">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {['linkedin', 'facebook', 'instagram', 'youtube'].map((social) => (
                         <div key={social}>
@@ -617,7 +617,7 @@
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-[20px] glass-chip flex items-center justify-center text-slate-800">
-                        <Icon icon={Monitor} size={20} />
+                        <Icon name="monitor" size={20} />
                       </div>
                       <div>
                         <h2 className="text-xl font-semibold">Live Preview</h2>
@@ -629,7 +629,7 @@
                       onClick={copySignature}
                       className={`copy-btn rounded-[22px] px-6 py-3.5 text-sm font-semibold flex items-center gap-2 ${copied ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'glass-chip text-slate-800 hover:bg-white/80'}`}
                     >
-                      <Icon icon={copied ? Check : Copy} size={18} />
+                      <Icon name={copied ? 'check' : 'copy'} size={18} />
                       {copied ? 'Copied Successfully' : 'Copy for Outlook'}
                     </button>
                   </div>
@@ -646,7 +646,7 @@
                           Message Preview
                         </div>
                         <button onClick={() => setImageError(false)} className="glass-chip rounded-2xl px-3 py-2 text-slate-500 hover:text-slate-700 transition flex items-center gap-2 text-xs font-semibold">
-                          <Icon icon={RefreshCw} size={14} /> Refresh
+                          <Icon name="refresh" size={14} /> Refresh
                         </button>
                       </div>
 
@@ -657,7 +657,7 @@
                       </div>
 
                       <div className="mt-6 flex items-center justify-center gap-2 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.18em]">
-                        <Icon icon={MousePointer2} size={12} /> Interactive canvas
+                        <Icon name="pointer" size={12} /> Interactive canvas
                       </div>
                     </div>
                   </div>
@@ -665,7 +665,7 @@
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="glass-soft rounded-[28px] p-5 flex gap-4">
                       <div className="w-11 h-11 rounded-[18px] glass-chip flex items-center justify-center text-red-500 shrink-0">
-                        <Icon icon={Wand2} size={18} />
+                        <Icon name="wand" size={18} />
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold mb-1">Glass UX polish</h3>
