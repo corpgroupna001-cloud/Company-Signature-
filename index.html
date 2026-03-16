@@ -1,710 +1,315 @@
-import React, { useMemo, useRef, useState } from 'react';
-import {
-  Copy,
-  Check,
-  User,
-  Share2,
-  Upload,
-  X,
-  Layout,
-  Move,
-  Settings,
-  Globe,
-  Monitor,
-  MousePointer2,
-  RefreshCw,
-  ChevronDown,
-  Moon,
-  Sun,
-  Mail,
-  Phone,
-  MapPin,
-  Building2,
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Email Signature Generator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-const DEFAULT_ICONS = {
-  linkedin: 'https://cdn-icons-png.flaticon.com/64/145/145807.png',
-  facebook: 'https://cdn-icons-png.flaticon.com/64/145/145802.png',
-  instagram: 'https://cdn-icons-png.flaticon.com/64/174/174855.png',
-  youtube: 'https://cdn-icons-png.flaticon.com/64/174/174883.png',
-};
+<style>
 
-const companyOptions = [
-  'Protathlitis Sportsmart LLP',
-  'Nova Sportsmart Private Limited',
+*{
+box-sizing:border-box;
+font-family:Segoe UI, Arial;
+}
+
+body{
+margin:0;
+min-height:100vh;
+background:linear-gradient(135deg,#6d28d9,#9333ea,#0ea5e9);
+display:flex;
+align-items:center;
+justify-content:center;
+padding:40px;
+}
+
+/* layout */
+
+.container{
+width:100%;
+max-width:1200px;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:35px;
+}
+
+/* glass card */
+
+.glass{
+background:rgba(255,255,255,0.15);
+backdrop-filter:blur(20px);
+border-radius:20px;
+border:1px solid rgba(255,255,255,0.2);
+padding:28px;
+box-shadow:0 15px 40px rgba(0,0,0,0.2);
+}
+
+h2{
+color:white;
+margin-bottom:18px;
+}
+
+/* inputs */
+
+input{
+width:100%;
+padding:12px 14px;
+border-radius:10px;
+border:none;
+margin-bottom:12px;
+background:rgba(255,255,255,0.25);
+color:white;
+font-size:14px;
+outline:none;
+}
+
+input::placeholder{
+color:rgba(255,255,255,0.7);
+}
+
+/* button */
+
+button{
+width:100%;
+padding:12px;
+border-radius:10px;
+border:none;
+background:white;
+color:#6d28d9;
+font-weight:600;
+cursor:pointer;
+transition:0.25s;
+}
+
+button:hover{
+transform:scale(1.03);
+box-shadow:0 10px 20px rgba(0,0,0,0.25);
+}
+
+/* preview */
+
+.preview{
+background:white;
+border-radius:12px;
+padding:20px;
+}
+
+.social img{
+width:24px;
+margin-right:6px;
+}
+
+@media(max-width:900px){
+.container{
+grid-template-columns:1fr;
+}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- FORM -->
+<div class="glass">
+
+<h2>Employee Details</h2>
+
+<input id="name" placeholder="Full Name">
+<input id="title" placeholder="Job Title">
+<input id="company" placeholder="Company Name">
+<input id="phone" placeholder="Mobile">
+<input id="email" placeholder="Email">
+<input id="address" placeholder="Address">
+
+<input type="file" id="logoUpload" accept="image/*">
+
+<h2 style="margin-top:15px;">Social Links</h2>
+
+<input id="linkedin" placeholder="LinkedIn URL">
+<input id="facebook" placeholder="Facebook URL">
+<input id="instagram" placeholder="Instagram URL">
+<input id="youtube" placeholder="YouTube URL">
+
+<button onclick="copySignature()">Copy Outlook Signature</button>
+
+</div>
+
+
+<!-- PREVIEW -->
+<div class="glass">
+
+<h2>Signature Preview</h2>
+
+<div id="signature-preview" class="preview">
+
+<table cellpadding="0" cellspacing="0">
+<tr>
+
+<td style="padding-right:18px;vertical-align:top">
+
+<div style="text-align:center">
+
+<img id="logoPreview" style="width:120px;display:none;margin-bottom:8px">
+
+<div class="social">
+
+<a id="linkedinLink" target="_blank">
+<img src="https://cdn-icons-png.flaticon.com/512/174/174857.png">
+</a>
+
+<a id="facebookLink" target="_blank">
+<img src="https://cdn-icons-png.flaticon.com/512/733/733547.png">
+</a>
+
+<a id="instagramLink" target="_blank">
+<img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png">
+</a>
+
+<a id="youtubeLink" target="_blank">
+<img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png">
+</a>
+
+</div>
+
+</div>
+
+</td>
+
+
+<td style="border-left:2px solid #e5e7eb;padding-left:18px">
+
+<div style="font-size:14px;line-height:1.6;color:#111">
+
+<div id="pname" style="font-size:18px;font-weight:700"></div>
+
+<div id="ptitle" style="color:#374151"></div>
+
+<div id="pcompany" style="color:#dc2626;font-weight:700;margin-bottom:8px"></div>
+
+<div id="pphone"></div>
+<div id="pemail"></div>
+<div id="paddress" style="margin-top:6px"></div>
+
+</div>
+
+</td>
+
+</tr>
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* update preview */
+
+const inputs = [
+"name","title","company","phone","email","address",
+"linkedin","facebook","instagram","youtube"
 ];
 
-const addressOptions = [
-  'Plot-28,29, Mahagayatri Nagar, HMDA Layout, Hayathnagar, Rangareddy, Telangana, India - 501505',
-  'Unit-NO: 7-140/2, E 5, LEFT PORTION, NAGENDRA NAGAR, SCIENTIST COLONY, HABSIGUDA, HYDERABAD- 500 007',
-];
-
-const cn = (...classes) => classes.filter(Boolean).join(' ');
-
-const SectionTitle = ({ icon: Icon, children }) => (
-  <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-[2px] mb-4 flex items-center gap-2">
-    <Icon size={14} /> {children}
-  </h2>
-);
-
-const Field = ({ label, icon: Icon, children }) => (
-  <div className="space-y-1.5">
-    <label className="text-[11px] font-semibold text-slate-600 ml-1 flex items-center gap-1.5">
-      {Icon ? <Icon size={12} /> : null}
-      {label}
-    </label>
-    {children}
-  </div>
-);
-
-const Input = (props) => (
-  <input
-    {...props}
-    className={cn(
-      'w-full px-3 py-2.5 bg-white/80 border border-slate-200 rounded-xl text-sm',
-      'placeholder:text-slate-400',
-      'focus:bg-white focus:ring-4 focus:ring-red-100 focus:border-red-500 transition-all outline-none',
-      props.className
-    )}
-  />
-);
-
-const Select = ({ children, className, ...props }) => (
-  <div className="relative">
-    <select
-      {...props}
-      className={cn(
-        'w-full px-3 py-2.5 bg-white/80 border border-slate-200 rounded-xl text-sm appearance-none',
-        'focus:bg-white focus:ring-4 focus:ring-red-100 focus:border-red-500 transition-all outline-none',
-        className
-      )}
-    >
-      {children}
-    </select>
-    <ChevronDown size={14} className="absolute right-3 top-3.5 text-slate-400 pointer-events-none" />
-  </div>
-);
-
-const SocialRow = ({ data, size = 20 }) => {
-  const socials = [
-    ['linkedin', 'LI'],
-    ['facebook', 'FB'],
-    ['instagram', 'IG'],
-    ['youtube', 'YT'],
-  ];
-
-  return (
-    <table cellPadding="0" cellSpacing="0" border="0" align="center" style={{ borderCollapse: 'collapse' }}>
-      <tbody>
-        <tr>
-          {socials.map(([key, alt]) => (
-            <td key={key} style={{ padding: '0 4px' }}>
-              <a href={data[key] || '#'} target="_blank" rel="noreferrer">
-                <img src={DEFAULT_ICONS[key]} width={size} height={size} border="0" alt={alt} />
-              </a>
-            </td>
-          ))}
-        </tr>
-      </tbody>
-    </table>
-  );
-};
-
-const DetailsBlock = ({ data, darkMode = false }) => (
-  <div style={{ textAlign: 'left' }}>
-    <div
-      style={{
-        fontSize: '18px',
-        fontWeight: 'bold',
-        color: darkMode ? '#f8fafc' : '#000000',
-        marginBottom: '2px',
-        lineHeight: '1.2',
-      }}
-    >
-      {data.name || 'Full Name'}
-    </div>
-    <div style={{ fontSize: '13px', color: darkMode ? '#cbd5e1' : '#4b5563', marginBottom: '4px' }}>
-      {data.title || 'Job Title'}
-    </div>
-    <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#dc2626', marginBottom: '10px' }}>
-      {data.company}
-    </div>
-    <table
-      cellPadding="0"
-      cellSpacing="0"
-      border="0"
-      style={{ fontSize: '12px', color: darkMode ? '#e2e8f0' : '#374151', lineHeight: '1.4' }}
-    >
-      <tbody>
-        <tr>
-          <td style={{ paddingBottom: '2px' }}>
-            <span style={{ fontWeight: 'bold', color: darkMode ? '#ffffff' : '#000000' }}>Mobile:</span>{' '}
-            {data.mobile || '+00 00000 00000'}
-          </td>
-        </tr>
-        <tr>
-          <td style={{ paddingBottom: '2px' }}>
-            <span style={{ fontWeight: 'bold', color: darkMode ? '#ffffff' : '#000000' }}>Email:</span>{' '}
-            <a
-              href={data.email ? `mailto:${data.email}` : '#'}
-              style={{ color: darkMode ? '#93c5fd' : '#2563eb', textDecoration: 'underline' }}
-            >
-              {data.email || 'name@company.com'}
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <td
-            style={{
-              paddingTop: '6px',
-              maxWidth: '300px',
-              fontSize: '11px',
-              color: darkMode ? '#cbd5e1' : '#6b7280',
-            }}
-          >
-            <span style={{ fontWeight: 'bold', color: darkMode ? '#e2e8f0' : '#374151' }}>Address:</span>{' '}
-            {data.address}
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-);
-
-const SignaturePreview = React.forwardRef(({ data, imageError, setImageError, darkMode = false }, ref) => {
-  const logoContent = data.logoUrl && !imageError ? (
-    <img
-      src={data.logoUrl}
-      alt="Logo"
-      width={data.logoWidth}
-      border="0"
-      style={{
-        display: 'block',
-        border: '0',
-        margin: '0 auto',
-        width: `${data.logoWidth}px`,
-      }}
-      onError={() => setImageError(true)}
-    />
-  ) : (
-    <div
-      style={{
-        width: `${data.logoWidth}px`,
-        height: '80px',
-        backgroundColor: darkMode ? '#1e293b' : '#f3f4f6',
-        border: `1px dashed ${darkMode ? '#475569' : '#d1d5db'}`,
-        borderRadius: '4px',
-        display: 'table-cell',
-        verticalAlign: 'middle',
-        textAlign: 'center',
-        color: darkMode ? '#94a3b8' : '#9ca3af',
-        fontSize: '10px',
-      }}
-    >
-      Logo
-    </div>
-  );
-
-  const divider = darkMode ? '#334155' : '#eeeeee';
-  const bg = darkMode ? '#0f172a' : '#ffffff';
-
-  return (
-    <div ref={ref} style={{ background: bg, display: 'inline-block' }}>
-      <table
-        cellPadding="0"
-        cellSpacing="0"
-        border="0"
-        style={{
-          background: bg,
-          minWidth: data.layout === 'top' ? '300px' : '400px',
-          fontFamily: 'Arial, Helvetica, sans-serif',
-          borderCollapse: 'collapse',
-        }}
-      >
-        <tbody>
-          {data.layout === 'top' ? (
-            <>
-              <tr>
-                <td align="center" style={{ paddingBottom: '15px', paddingTop: `${data.nudgeVertical}px` }}>
-                  {data.websiteUrl ? (
-                    <a href={data.websiteUrl} target="_blank" rel="noreferrer">
-                      {logoContent}
-                    </a>
-                  ) : (
-                    logoContent
-                  )}
-                  <div style={{ marginTop: '12px' }}>
-                    <SocialRow data={data} />
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td height="1" style={{ backgroundColor: divider, fontSize: '1px', lineHeight: '1px' }}>
-                  &nbsp;
-                </td>
-              </tr>
-              <tr>
-                <td style={{ paddingTop: '15px' }}>
-                  <DetailsBlock data={data} darkMode={darkMode} />
-                </td>
-              </tr>
-            </>
-          ) : (
-            <tr>
-              {data.layout === 'left' ? (
-                <>
-                  <td valign={data.valign} style={{ paddingRight: '20px', textAlign: 'center' }}>
-                    <div style={{ paddingTop: `${data.nudgeVertical}px`, marginBottom: '12px' }}>
-                      {data.websiteUrl ? (
-                        <a href={data.websiteUrl} target="_blank" rel="noreferrer">
-                          {logoContent}
-                        </a>
-                      ) : (
-                        logoContent
-                      )}
-                    </div>
-                    <SocialRow data={data} />
-                  </td>
-                  <td width="1" style={{ backgroundColor: divider, padding: 0 }} />
-                  <td valign="top" style={{ paddingLeft: '20px' }}>
-                    <DetailsBlock data={data} darkMode={darkMode} />
-                  </td>
-                </>
-              ) : (
-                <>
-                  <td valign="top" style={{ paddingRight: '20px' }}>
-                    <DetailsBlock data={data} darkMode={darkMode} />
-                  </td>
-                  <td width="1" style={{ backgroundColor: divider, padding: 0 }} />
-                  <td valign={data.valign} style={{ paddingLeft: '20px', textAlign: 'center' }}>
-                    <div style={{ paddingTop: `${data.nudgeVertical}px`, marginBottom: '12px' }}>
-                      {data.websiteUrl ? (
-                        <a href={data.websiteUrl} target="_blank" rel="noreferrer">
-                          {logoContent}
-                        </a>
-                      ) : (
-                        logoContent
-                      )}
-                    </div>
-                    <SocialRow data={data} />
-                  </td>
-                </>
-              )}
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
+inputs.forEach(id=>{
+document.getElementById(id).addEventListener("input",updatePreview);
 });
 
-export default function App() {
-  const [formData, setFormData] = useState({
-    name: '',
-    title: '',
-    company: companyOptions[0],
-    websiteUrl: '',
-    mobile: '',
-    email: '',
-    address: addressOptions[0],
-    logoUrl: '',
-    logoWidth: 100,
-    layout: 'left',
-    valign: 'top',
-    nudgeVertical: 0,
-    linkedin: '',
-    facebook: '',
-    instagram: '',
-    youtube: '',
-  });
+function updatePreview(){
 
-  const [copied, setCopied] = useState(false);
-  const [imageError, setImageError] = useState(false);
-  const [previewTheme, setPreviewTheme] = useState('light');
-  const signatureRef = useRef(null);
-  const fileInputRef = useRef(null);
+const name=document.getElementById("name").value;
+const title=document.getElementById("title").value;
+const company=document.getElementById("company").value;
+const phone=document.getElementById("phone").value;
+const email=document.getElementById("email").value;
+const address=document.getElementById("address").value;
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === 'logoWidth' || name === 'nudgeVertical' ? parseInt(value, 10) || 0 : value,
-    }));
-  };
+document.getElementById("pname").innerText=name;
+document.getElementById("ptitle").innerText=title;
+document.getElementById("pcompany").innerText=company;
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData((prev) => ({ ...prev, logoUrl: String(reader.result) }));
-      setImageError(false);
-    };
-    reader.readAsDataURL(file);
-  };
+document.getElementById("pphone").innerHTML =
+phone ? "<strong>Mobile:</strong> "+phone : "";
 
-  const copySignature = async () => {
-    if (!signatureRef.current) return;
+document.getElementById("pemail").innerHTML =
+email ? "<strong>Email:</strong> "+email : "";
 
-    const range = document.createRange();
-    range.selectNode(signatureRef.current);
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-    selection?.addRange(range);
+document.getElementById("paddress").innerHTML =
+address ? "<strong>Address:</strong> "+address : "";
 
-    try {
-      document.execCommand('copy');
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } finally {
-      selection?.removeAllRanges();
-    }
-  };
 
-  const completion = useMemo(() => {
-    const checks = [formData.name, formData.title, formData.mobile, formData.email, formData.logoUrl];
-    return Math.round((checks.filter(Boolean).length / checks.length) * 100);
-  }, [formData]);
+/* social */
 
-  const darkPreview = previewTheme === 'dark';
+updateSocial();
 
-  return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_#ffffff,_#f8fafc_30%,_#eef2ff_100%)] text-slate-800 font-sans">
-      <div className="max-w-[1500px] mx-auto p-4 lg:p-6">
-        <div className="grid grid-cols-1 xl:grid-cols-[460px_minmax(0,1fr)] gap-5 h-[calc(100vh-2rem)] lg:h-[calc(100vh-3rem)]">
-          <aside className="bg-white/70 backdrop-blur-xl border border-white rounded-[32px] shadow-[0_20px_80px_rgba(15,23,42,0.08)] overflow-hidden">
-            <div className="h-full overflow-y-auto custom-scrollbar p-6 lg:p-8">
-              <div className="flex items-center justify-between gap-4 mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="bg-gradient-to-br from-red-600 to-red-500 p-3 rounded-2xl text-white shadow-lg shadow-red-200">
-                    <Settings size={20} />
-                  </div>
-                  <div>
-                    <h1 className="text-xl font-bold tracking-tight">Signature Studio</h1>
-                    <p className="text-xs text-slate-500 font-medium">Premium UI / UX builder</p>
-                  </div>
-                </div>
-                <div className="hidden sm:block text-right">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Profile Ready</div>
-                  <div className="text-lg font-bold text-slate-800">{completion}%</div>
-                </div>
-              </div>
-
-              <div className="mb-8 rounded-3xl border border-slate-200/70 bg-gradient-to-r from-slate-50 to-white p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-slate-400">Completion</span>
-                  <span className="text-xs font-bold text-red-600">{completion}%</span>
-                </div>
-                <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
-                  <div className="h-full rounded-full bg-gradient-to-r from-red-500 to-red-600 transition-all" style={{ width: `${completion}%` }} />
-                </div>
-              </div>
-
-              <div className="space-y-8 pb-20">
-                <section className="rounded-[28px] border border-slate-200/70 bg-white/70 p-5 shadow-sm">
-                  <SectionTitle icon={User}>Identity Details</SectionTitle>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Field label="Full Name" icon={User}>
-                        <Input name="name" value={formData.name} onChange={handleInputChange} placeholder="John Doe" />
-                      </Field>
-                      <Field label="Job Title">
-                        <Input name="title" value={formData.title} onChange={handleInputChange} placeholder="Manager" />
-                      </Field>
-                    </div>
-
-                    <Field label="Company Name" icon={Building2}>
-                      <Select name="company" value={formData.company} onChange={handleInputChange}>
-                        {companyOptions.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </Select>
-                    </Field>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Field label="Mobile" icon={Phone}>
-                        <Input name="mobile" value={formData.mobile} onChange={handleInputChange} placeholder="+1 234 567 890" />
-                      </Field>
-                      <Field label="Email" icon={Mail}>
-                        <Input name="email" value={formData.email} onChange={handleInputChange} placeholder="john@doe.com" />
-                      </Field>
-                    </div>
-
-                    <Field label="Address" icon={MapPin}>
-                      <Select name="address" value={formData.address} onChange={handleInputChange}>
-                        {addressOptions.map((opt) => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </Select>
-                    </Field>
-                  </div>
-                </section>
-
-                <section className="rounded-[28px] border border-slate-200/70 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm">
-                  <SectionTitle icon={Layout}>Logo & Layout</SectionTitle>
-                  <div className="space-y-6">
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-bold shadow-sm hover:border-red-500 hover:-translate-y-0.5 transition-all"
-                      >
-                        <Upload size={14} /> Upload Logo
-                      </button>
-                      {formData.logoUrl && (
-                        <button
-                          onClick={() => setFormData((p) => ({ ...p, logoUrl: '' }))}
-                          className="p-3 bg-white border border-slate-200 rounded-2xl text-red-500 hover:bg-red-50 shadow-sm transition-all"
-                        >
-                          <X size={16} />
-                        </button>
-                      )}
-                      <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept="image/*" className="hidden" />
-                    </div>
-
-                    <Field label="Website (Link on Logo)" icon={Globe}>
-                      <Input name="websiteUrl" value={formData.websiteUrl} onChange={handleInputChange} placeholder="https://www.company.com" className="text-xs" />
-                    </Field>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                        <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          <span>Logo Width</span>
-                          <span className="text-red-600">{formData.logoWidth}px</span>
-                        </div>
-                        <input type="range" name="logoWidth" min="40" max="220" value={formData.logoWidth} onChange={handleInputChange} className="w-full accent-red-600 h-1.5" />
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          <span>Fine Alignment</span>
-                          <span className="text-red-600">+{formData.nudgeVertical}px</span>
-                        </div>
-                        <input type="range" name="nudgeVertical" min="0" max="60" value={formData.nudgeVertical} onChange={handleInputChange} className="w-full accent-red-600 h-1.5" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Logo Position</label>
-                      <div className="flex p-1 bg-white border border-slate-200 rounded-2xl gap-1 shadow-sm">
-                        {['left', 'top', 'right'].map((pos) => (
-                          <button
-                            key={pos}
-                            onClick={() => setFormData((p) => ({ ...p, layout: pos }))}
-                            className={cn(
-                              'flex-1 py-2.5 text-[10px] font-bold uppercase rounded-xl transition-all',
-                              formData.layout === pos
-                                ? 'bg-red-600 text-white shadow-md'
-                                : 'hover:bg-slate-50 text-slate-500'
-                            )}
-                          >
-                            {pos}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="rounded-[28px] border border-slate-200/70 bg-white/70 p-5 shadow-sm">
-                  <SectionTitle icon={Share2}>Social Profiles</SectionTitle>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {['linkedin', 'facebook', 'instagram', 'youtube'].map((social) => (
-                      <Field key={social} label={`${social.charAt(0).toUpperCase() + social.slice(1)} URL`}>
-                        <Input
-                          name={social}
-                          value={formData[social]}
-                          onChange={handleInputChange}
-                          placeholder={`https://${social}.com/...`}
-                          className="text-xs"
-                        />
-                      </Field>
-                    ))}
-                  </div>
-                </section>
-              </div>
-            </div>
-          </aside>
-
-          <main className="bg-white/50 backdrop-blur-xl border border-white rounded-[32px] shadow-[0_20px_80px_rgba(15,23,42,0.08)] overflow-hidden">
-            <div className="h-full overflow-y-auto custom-scrollbar p-6 lg:p-8 xl:p-10">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-600">
-                    <Monitor size={22} />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-bold text-slate-800">Live Preview</h2>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Real-time Rendering</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-                  <div className="flex p-1 bg-white border border-slate-200 rounded-2xl shadow-sm">
-                    <button
-                      onClick={() => setPreviewTheme('light')}
-                      className={cn(
-                        'px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all',
-                        previewTheme === 'light' ? 'bg-slate-900 text-white' : 'text-slate-500'
-                      )}
-                    >
-                      <Sun size={14} /> Light
-                    </button>
-                    <button
-                      onClick={() => setPreviewTheme('dark')}
-                      className={cn(
-                        'px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all',
-                        previewTheme === 'dark' ? 'bg-slate-900 text-white' : 'text-slate-500'
-                      )}
-                    >
-                      <Moon size={14} /> Dark
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={copySignature}
-                    className={cn(
-                      'w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-bold text-sm transition-all shadow-xl active:scale-95',
-                      copied ? 'bg-green-600 text-white' : 'bg-slate-900 text-white hover:bg-black'
-                    )}
-                  >
-                    {copied ? <Check size={20} /> : <Copy size={20} />}
-                    {copied ? 'Copied Successfully!' : 'Copy for Outlook'}
-                  </button>
-                </div>
-              </div>
-
-              <div className={cn(
-                'rounded-[2.5rem] shadow-2xl border overflow-hidden transition-all',
-                darkPreview ? 'bg-slate-900 border-slate-800 shadow-slate-900/20' : 'bg-white border-white shadow-slate-200/60'
-              )}>
-                <div className={cn(
-                  'px-8 py-5 border-b flex items-center justify-between',
-                  darkPreview ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-100'
-                )}>
-                  <div className="flex gap-2">
-                    <div className={cn('w-3 h-3 rounded-full', darkPreview ? 'bg-slate-700' : 'bg-slate-200')} />
-                    <div className={cn('w-3 h-3 rounded-full', darkPreview ? 'bg-slate-700' : 'bg-slate-200')} />
-                    <div className={cn('w-3 h-3 rounded-full', darkPreview ? 'bg-slate-700' : 'bg-slate-200')} />
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className={cn('text-[10px] font-bold uppercase tracking-widest', darkPreview ? 'text-slate-500' : 'text-slate-300')}>
-                      New Message
-                    </span>
-                    <RefreshCw
-                      size={12}
-                      className={cn('cursor-pointer', darkPreview ? 'text-slate-500 hover:text-slate-300' : 'text-slate-300 hover:text-slate-400')}
-                      onClick={() => setImageError(false)}
-                    />
-                  </div>
-                </div>
-
-                <div className={cn(
-                  'p-8 lg:p-14 flex flex-col items-center justify-center min-h-[420px] relative',
-                  darkPreview ? 'bg-[radial-gradient(circle_at_top,_#1e293b,_#0f172a_70%)]' : 'bg-white'
-                )}>
-                  <div className={cn(
-                    'absolute inset-0 border-[20px] pointer-events-none rounded-[2rem]',
-                    darkPreview ? 'border-slate-800/30' : 'border-slate-50/30'
-                  )} />
-
-                  <div className="relative z-10 p-5 rounded-[28px] bg-white/70 backdrop-blur-sm shadow-lg border border-white/60">
-                    <SignaturePreview
-                      ref={signatureRef}
-                      data={formData}
-                      imageError={imageError}
-                      setImageError={setImageError}
-                      darkMode={darkPreview}
-                    />
-                  </div>
-
-                  <div className={cn(
-                    'absolute bottom-6 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2',
-                    darkPreview ? 'text-slate-600' : 'text-slate-300'
-                  )}>
-                    <MousePointer2 size={10} /> Interactive Canvas
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white/70 backdrop-blur-sm p-5 rounded-[1.5rem] border border-white shadow-sm flex gap-4 items-start">
-                  <div className="p-2.5 bg-red-100 rounded-xl text-red-600 flex-shrink-0">
-                    <Move size={16} />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-800 mb-1 text-left">Fine Alignment</h4>
-                    <p className="text-[11px] text-slate-500 leading-relaxed text-left">
-                      Use the nudge slider to perfectly center the logo vertically against your name.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-white/70 backdrop-blur-sm p-5 rounded-[1.5rem] border border-white shadow-sm flex gap-4 items-start">
-                  <div className="p-2.5 bg-blue-100 rounded-xl text-blue-600 flex-shrink-0">
-                    <Monitor size={16} />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-800 mb-1 text-left">Theme Preview</h4>
-                    <p className="text-[11px] text-slate-500 leading-relaxed text-left">
-                      Switch between light and dark preview to inspect how the signature feels in both modes.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-white/70 backdrop-blur-sm p-5 rounded-[1.5rem] border border-white shadow-sm flex gap-4 items-start">
-                  <div className="p-2.5 bg-emerald-100 rounded-xl text-emerald-600 flex-shrink-0">
-                    <Copy size={16} />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-800 mb-1 text-left">Outlook Ready</h4>
-                    <p className="text-[11px] text-slate-500 leading-relaxed text-left">
-                      Copy the signature block and paste it directly into Outlook or other signature editors.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </main>
-        </div>
-      </div>
-
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #dbe3ef;
-          border-radius: 999px;
-        }
-        input[type=range] {
-          -webkit-appearance: none;
-          background: transparent;
-        }
-        input[type=range]:focus {
-          outline: none;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-          width: 100%;
-          height: 6px;
-          cursor: pointer;
-          background: #e2e8f0;
-          border-radius: 999px;
-        }
-        input[type=range]::-webkit-slider-thumb {
-          height: 18px;
-          width: 18px;
-          border-radius: 999px;
-          background: #dc2626;
-          cursor: pointer;
-          -webkit-appearance: none;
-          margin-top: -6px;
-          box-shadow: 0 8px 18px rgba(220, 38, 38, 0.22);
-          border: 2px solid white;
-        }
-      `}</style>
-    </div>
-  );
 }
+
+function updateSocial(){
+
+["linkedin","facebook","instagram","youtube"].forEach(id=>{
+
+const value=document.getElementById(id).value;
+const link=document.getElementById(id+"Link");
+
+if(value){
+link.href=value;
+link.style.display="inline";
+}else{
+link.style.display="none";
+}
+
+});
+
+}
+
+/* logo upload */
+
+document.getElementById("logoUpload").addEventListener("change",function(){
+
+const file=this.files[0];
+if(!file) return;
+
+const reader=new FileReader();
+
+reader.onload=function(e){
+
+const img=document.getElementById("logoPreview");
+img.src=e.target.result;
+img.style.display="block";
+
+};
+
+reader.readAsDataURL(file);
+
+});
+
+
+/* copy signature */
+
+function copySignature(){
+
+const el=document.getElementById("signature-preview");
+
+const range=document.createRange();
+range.selectNode(el);
+
+const sel=window.getSelection();
+sel.removeAllRanges();
+sel.addRange(range);
+
+document.execCommand("copy");
+
+alert("Signature copied. Paste into Outlook signature editor.");
+
+}
+
+updatePreview();
+
+</script>
+
+</body>
+</html>
